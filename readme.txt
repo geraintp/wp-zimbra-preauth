@@ -12,7 +12,7 @@ This plugin adds a simple link widget for Zibra Pre authentication
 
 == Description ==
 
-This plugin adds a login link/image widget that allows loggedin users to automattically login into their Zimbra account based on their wp account email address. [see the Zimbra wiki for more details on preauth](http://wiki.zimbra.com/wiki/Preauth) 
+This plugin adds a login link/image widget that allows logged-in users to automatically login into their Zimbra account based on their wp account email address. [see the Zimbra wiki for more details on preauth](http://wiki.zimbra.com/wiki/Preauth) 
 
 Key Features:
 
