@@ -1,0 +1,19 @@
+{
+    "name": "geraintp/wp-zimbra-preauth",
+    "description": "This plugin adds a simple link widget for Zibra Pre authentication",
+    "keywords": ["zimbra", "widget", "preauth"],
+    "homepage": "http://github.com/geraintp/wp-zimbra-preauth",
+    "type": "wordpress-plugin",
+    "license": "GPLv2",
+    "authors": [
+        {
+            "name": "Geraint Palmer",
+            "email": "geraintp@gmail.com",
+            "homepage": "http://geraint.co"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "wordpress":">=4.0"
+    }
+}
