@@ -3,20 +3,20 @@
  * Plugin Name: Zimbra Preauth Widget
  * Plugin URI: https://github.com/geraintp/wp-zimbra-preauth
  * Description: This plugin adds a simple link widget for Zibra Pre authentication
- * Version: 1.0.0
- * Author: Two Thirds Design
+ * Version: 0.1.0
+ * Author: @geraintp - Two Thirds Design
  * Author URI: http://www.twothirdsdesign.co.uk
  * License: GPL2
  */
 defined( 'ABSPATH' ) or die( 'not found' );
 
 define( 'ZIPA_MINIMUM_WP_VERSION', '4.0' );
-define( 'ZIPA_VERSION', '1.0.0' );
+define( 'ZIPA_VERSION', '0.1.0' );
 define( 'ZIPA_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
 define( 'ZIPA_PLUGIN_FILE', __FILE__ );
 
 /**
-* 
+*  Main Class
 */
 class TTD_Zimbra_Preauth
 {   
@@ -69,12 +69,13 @@ class TTD_Zimbra_Preauth
              * Redirect to Zimbra preauth URL
              */
             header("Location: $preauthURL");
+            exit;
         }
     }
 }
 
 /**
-* 
+* Admin Settings Page
 */
 class TTD_Zimbra_Preauth_Admin_Settings
 {
@@ -159,7 +160,6 @@ class TTD_Zimbra_Preauth_Admin_Settings
             'ttd_zimbra_preauth_admin_settings::print_section_info', // Callback
             self::PAGEID // Page
         );  
-
 
 
         add_settings_field(
@@ -274,7 +274,7 @@ class TTD_Zimbra_Preauth_Admin_Settings
 <textarea name="zimbrapreauth[link_text]" rows="10" cols="50" id="link_text" class="large-text code">
 <?php print html_entity_decode( isset( self::$_options['link_text'] ) ? self::$_options['link_text'] : self::$_default['link_text'] ) ?>
 </textarea>
-</p><?php var_dump(self::$_options);
+</p><?php 
     }
 
 
@@ -294,7 +294,7 @@ class TTD_Zimbra_Preauth_Admin_Settings
 TTD_Zimbra_Preauth::init();
 
 /**
- * Example Widget Class
+ * Zimbra PreAuth Widget Class
  */
 class wp_zimbra_preauth extends WP_Widget {
  
@@ -341,5 +341,5 @@ class wp_zimbra_preauth extends WP_Widget {
         <?php 
     }
  
-} // end class example_widget
+}
 ?>
