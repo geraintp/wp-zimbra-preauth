@@ -2,12 +2,18 @@
 /**
  * Plugin Name: Zimbra Preauth Widget
  * Plugin URI: https://github.com/geraintp/wp-zimbra-preauth
- * Description: A brief description of the plugin.
+ * Description: This plugin adds a simple link widget for Zibra Pre authentication
  * Version: 1.0.0
- * Author: Geraint Palmer
- * Author URI: http://twothirdsdesign.co.uk
+ * Author: Two Thirds Design
+ * Author URI: http://www.twothirdsdesign.co.uk
  * License: GPL2
  */
+defined( 'ABSPATH' ) or die( 'not found' );
+
+define( 'ZIPA_MINIMUM_WP_VERSION', '4.0' );
+define( 'ZIPA_VERSION', '1.0.0' );
+define( 'ZIPA_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
+define( 'ZIPA_PLUGIN_FILE', __FILE__ );
 
 /**
 * 
@@ -49,7 +55,7 @@ class TTD_Zimbra_Preauth
             $email = $current_user->user_email;
 
             if(empty($preauth_key)) {
-                die("Need preauth key for domain ".$domain);
+                die("Preauth key for domain not set!!");
             }
 
             /**
@@ -73,6 +79,13 @@ class TTD_Zimbra_Preauth
 class TTD_Zimbra_Preauth_Admin_Settings
 {
     private static $_options = false;
+    private static $_default = array(
+        'preauth_key' => '',
+        'preauth_url' => '',
+        'login_url' => '',
+        'link_text' => '',
+    );
+
     private static $_instance = false;
 
     // Page Slug ID
@@ -84,10 +97,23 @@ class TTD_Zimbra_Preauth_Admin_Settings
      * @return void
      **/
     private function __construct()
-    {
+    {   
+        //doesnt work? quite right
+        self::$_default['link_text'] = htmlentities(stripslashes('<div style="text-align: center;"> <img width="168" vspace="0" hspace="0" height="43" border="0" src="'. plugins_url( 'img/ZimbraLogo.png', ZIPA_PLUGIN_FILE ) .'" alt="School Email" title="School Email" /></div>'));
+        
         // Add Admin Area
         add_action('admin_init', 'ttd_zimbra_preauth_admin_settings::page_init');
         add_action('admin_menu', 'ttd_zimbra_preauth_admin_settings::add_plugin_page' );
+
+        $plugin = plugin_basename( ZIPA_PLUGIN_FILE );
+        add_filter("plugin_action_links_$plugin", 'ttd_zimbra_preauth_admin_settings::settings_link' );
+    }
+
+    // Add settings link on plugin page
+    public static function settings_link($links) { 
+        $settings_link = '<a href="options-general.php?page=zimbra-preauth-settings">Settings</a>'; 
+        array_unshift($links, $settings_link); 
+        return $links; 
     }
 
     /**
@@ -246,9 +272,9 @@ class TTD_Zimbra_Preauth_Admin_Settings
         print "<p class=\"description\">The text to be displayed as the html link to zimbra</p>";
         ?><p>
 <textarea name="zimbrapreauth[link_text]" rows="10" cols="50" id="link_text" class="large-text code">
-<?php print isset( self::$_options['link_text'] ) ? html_entity_decode( self::$_options['link_text'] ) : '' ?>
+<?php print html_entity_decode( isset( self::$_options['link_text'] ) ? self::$_options['link_text'] : self::$_default['link_text'] ) ?>
 </textarea>
-</p><?php
+</p><?php var_dump(self::$_options);
     }
 
 
