@@ -14,8 +14,6 @@
 */
 class TTD_Zimbra_Preauth
 {   
-    private static $options;
-    
     public static function init()
     {
         // Intercept redirect and execute logic code..
@@ -23,120 +21,16 @@ class TTD_Zimbra_Preauth
         // Register Widget
         add_action('widgets_init', create_function('', 'return register_widget("wp_zimbra_preauth");'));
 
-        // Add Admin Area
-        add_action('admin_init', 'ttd_zimbra_preauth::page_init');
-        add_action('admin_menu', 'ttd_zimbra_preauth::add_plugin_page' );
+        if( is_admin() )
+            $settings_page = TTD_Zimbra_Preauth_Admin_Settings::init();
     }
-
-    public static function add_plugin_page()
-    {
-        // This page will be under "Settings"
-        add_options_page(
-            'Zimbra Pre-Auth Settings', 
-            'Zimbra SSO',
-            'manage_options', 
-            'zimbra-preauth-settings', 
-            'ttd_zimbra_preauth::settings_page'
-        );
-    }
-
-    public static function page_init()
-    {
-
-        register_setting(
-            'ttd_zimbra_preauth::option-group', // Option group
-            'zimbrapreauth::login_url', // Option name
-            'TTD_Zimbra_Preauth::sanitize'  // Sanitize
-        );
-
-        add_settings_section(
-            'setting_section_id', // ID
-            'My Custom Settings', // Title
-            'TTD_Zimbra_Preauth::print_section_info', // Callback
-            'zimbra-preauth-settings' // Page
-        );  
-
-        add_settings_field(
-            'id_number', // ID
-            'ID Number', // Title 
-            'TTD_Zimbra_Preauth::id_number_callback', // Callback
-            'zimbra-preauth-settings', // Page
-            'setting_section_id' // Section           
-        );      
-
-        add_settings_field(
-            'title', 
-            'Title', 
-            'TTD_Zimbra_Preauth::title_callback', 
-            'zimbra-preauth-settings', 
-            'setting_section_id'
-        );      
-    
-    }
-
-    /**
-     * Sanitize each setting field as needed
-     *
-     * @param array $input Contains all settings fields as array keys
-     */
-    public static function sanitize( $input )
-    {
-        $new_input = array();
-        if( isset( $input['id_number'] ) )
-            $new_input['id_number'] = absint( $input['id_number'] );
-
-        if( isset( $input['title'] ) )
-            $new_input['title'] = sanitize_text_field( $input['title'] );
-
-        return $new_input;
-    }
-
-    /** 
-     * Print the Section text
-     */
-    public static function print_section_info()
-    {
-        print 'Enter your settings below:';
-    }
-
-    /** 
-     * Get the settings option array and print one of its values
-     */
-    public static function id_number_callback()
-    {
-        printf(
-            '<input class="regular-text code" type="text" id="id_number" name="my_option_name[id_number]" value="%s" />',
-            isset( self::$options['id_number'] ) ? esc_attr(  self::$options['id_number']) : ''
-        );
-    }
-
-    /** 
-     * Get the settings option array and print one of its values
-     */
-    public static function title_callback()
-    {
-        printf(
-            '<input class="regular-text code" type="text" id="title" name="my_option_name[title]" value="%s" />',
-            isset(  self::$options['title'] ) ? esc_attr(  self::$options['title']) : ''
-        );
-    }
-
-    public static function settings_page()
-    { ?>
-        <div class="wrap">
-            <h2>Zimbra PreAuth Settings</h2>
-            <form method="post" action="options.php"> 
-            <?php settings_fields( 'ttd_zimbra_preauth::option-group' ); ?>
-            <?php do_settings_sections( 'zimbra-preauth-settings' ); ?>
-            <?php submit_button(); ?>
-            </form>
-        </div>
-    <?php }
 
     // Intercept and redirect
     public static function redirect()
     {
         global $wp_query, $post;
+
+        $options = get_option("zimbrapreauth");
 
         if( $wp_query->query_vars['pagename'] == 'zibra_pre_auth' 
                 AND $wp_query->is_404 )
@@ -144,7 +38,7 @@ class TTD_Zimbra_Preauth
 
             if ( !is_user_logged_in() ){
                 $login_url = get_option( 'zimbrapreauth::login_url' );
-                header("Location: $login_url");
+                header("Location: {$options['login_url']}");
                 exit;
             }
 
@@ -172,6 +66,176 @@ class TTD_Zimbra_Preauth
             header("Location: $preauthURL");
         }
     }
+}
+
+/**
+* 
+*/
+class TTD_Zimbra_Preauth_Admin_Settings
+{
+    private static $_options = false;
+    private static $_instance = false;
+
+    // Page Slug ID
+    const PAGEID = 'zimbra-preauth-settings';
+    
+    /**
+     * Constructon adds hooks that load the admin page.
+     *
+     * @return void
+     **/
+    private function __construct()
+    {
+        // Add Admin Area
+        add_action('admin_init', 'ttd_zimbra_preauth_admin_settings::page_init');
+        add_action('admin_menu', 'ttd_zimbra_preauth_admin_settings::add_plugin_page' );
+    }
+
+    /**
+     * Singlton
+     *
+     * @return instance
+     * @static 
+     **/
+    public static function init()
+    {
+        if ( ! self::$_instance )
+            self::$_instance = new TTD_Zimbra_Preauth_Admin_Settings;
+
+        return self::$_instance;
+    }
+
+
+    public static function add_plugin_page()
+    {
+        // This page will be under "Settings"
+        add_options_page(
+            'Zimbra Pre-Auth Settings', 
+            'Zimbra SSO',
+            'manage_options', 
+            self::PAGEID, 
+            'ttd_zimbra_preauth_admin_settings::settings_page'
+        );
+    }
+
+    public static function page_init()
+    {
+        self::$_options = get_option("zimbrapreauth");
+
+        register_setting(
+            'ttd_zimbra_preauth::option-group', // Option group
+            'zimbrapreauth', // Option name
+            'ttd_zimbra_preauth_admin_settings::sanitize'  // Sanitize
+        );
+
+        add_settings_section(
+            'zimbra_preauth_setting_section', // ID
+            '', // Title
+            'ttd_zimbra_preauth_admin_settings::print_section_info', // Callback
+            self::PAGEID // Page
+        );  
+
+
+
+        add_settings_field(
+            'preauth_key', // ID
+            'Zimbra PreAuth Key', // Title 
+            'ttd_zimbra_preauth_admin_settings::preauth_key_callback', // Callback
+            self::PAGEID, // Page
+            'zimbra_preauth_setting_section' // Section           
+        );
+
+        add_settings_field(
+            'login_url', // ID
+            'Login URL', // Title 
+            'ttd_zimbra_preauth_admin_settings::login_url_callback', // Callback
+            self::PAGEID, // Page
+            'zimbra_preauth_setting_section' // Section           
+        );      
+
+        // add_settings_field(
+        //     'title', 
+        //     'Title', 
+        //     'ttd_zimbra_preauth_admin_settings::title_callback', 
+        //     'zimbra-preauth-settings', 
+        //     'setting_section_id'
+        // );      
+    
+    }
+
+    /**
+     * Sanitize each setting field as needed
+     *
+     * @param array $input Contains all settings fields as array keys
+     */
+    public static function sanitize( $input )
+    {
+        $new_input = array();
+
+        if( isset( $input['preauth_key'] ) )
+            $new_input['preauth_key'] = sanitize_text_field( $input['preauth_key'] );
+
+        if( isset( $input['login_url'] ) )
+            $new_input['login_url'] = sanitize_text_field( $input['login_url'] );
+
+        return $new_input;
+    }
+
+    /** 
+     * Print the Section text
+     */
+    public static function print_section_info()
+    {
+        //print 'Enter your settings below:';
+    }
+
+    /** 
+     * Get the settings option array and print one of its values
+     */
+    public static function preauth_key_callback()
+    {
+        printf(
+            '<input class="regular-text code" type="text" id="preauth_key" name="zimbrapreauth[preauth_key]" value="%s" />',
+            isset( self::$_options['preauth_key'] ) ? esc_attr( self::$_options['preauth_key'] ) : ''
+        );
+        print "<p class=\"description\">Please enter Zimbra PreAuth Key</p>";
+    }
+
+    /** 
+     * Get the settings option array and print one of its values
+     */
+    public static function login_url_callback()
+    {
+        var_dump(self::$_options);
+        printf(
+            '<input class="regular-text code" type="text" id="login_url" name="zimbrapreauth[login_url]" value="%s" />',
+            isset( self::$_options['login_url'] ) ? esc_attr( self::$_options['login_url'] ) : ''
+        );
+        print "<p class=\"description\">Enter Zimbras Url (e.g https://zimbra.server.com/)</p>";
+    }
+
+    /** 
+     * Get the settings option array and print one of its values
+     */
+    // public static function title_callback()
+    // {
+    //     printf(
+    //         '<input class="regular-text code" type="text" id="title" name="my_option_name[title]" value="%s" />',
+    //         isset(  self::$_options['title'] ) ? esc_attr(  self::$_options['title']) : ''
+    //     );
+    // }
+
+    public static function settings_page()
+    { ?>
+        <div class="wrap">
+            <h2>Zimbra PreAuth Settings</h2>
+            <form method="post" action="options.php"> 
+            <?php settings_fields( 'ttd_zimbra_preauth::option-group' ); ?>
+            <?php do_settings_sections( self::PAGEID ); ?>
+            <?php submit_button(); ?>
+            </form>
+        </div>
+    <?php }
 }
 
 TTD_Zimbra_Preauth::init();
