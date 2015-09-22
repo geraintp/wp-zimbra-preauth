@@ -3,7 +3,7 @@
  * Plugin Name: Zimbra Preauth Widget
  * Plugin URI: https://github.com/geraintp/wp-zimbra-preauth
  * Description: This plugin adds a simple link widget for Zibra Pre authentication
- * Version: 0.1.0
+ * Version: 0.1.2
  * Author: @geraintp - Two Thirds Design
  * Author URI: http://www.twothirdsdesign.co.uk
  * License: GPL2
@@ -315,7 +315,7 @@ class wp_zimbra_preauth extends WP_Widget {
               <?php if ( !empty($title) )
                     echo $before_title . $title . $after_title; ?>
 					
-					<a href="/?pagename=zibra_pre_auth"><?php echo html_entity_decode($options['link_text']); ?></a>
+					<a href="/?pagename=zibra_pre_auth" target="_blank"><?php echo html_entity_decode($options['link_text']); ?></a>
                     
 					
           <?php echo $after_widget; ?>
