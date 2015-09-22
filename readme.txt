@@ -68,5 +68,11 @@ _Then_
 
 == Changelog ==
 
+= 0.1.2 =
+Opens link in new tab/window
+
+= 0.1.1 =
+Fix typos in Readme
+
 = 0.1.0 =
 Initial Release, basic functionality matching moodle Zimbra SSO block
